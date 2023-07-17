@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "open-api-maker"
+version = "0.1.0"
+description = ""
+authors = ["Kamaal Farah <kamaal.f1@gmail.com>"]
+readme = "README.md"
+packages = [{include = "open_api_maker"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyyaml = "^6.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

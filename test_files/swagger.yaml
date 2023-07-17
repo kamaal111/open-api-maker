@@ -1,0 +1,181 @@
+basePath: /api/v1
+definitions:
+  health.pingResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  translations.makeTranslationPayload:
+    properties:
+      source_locale:
+        type: string
+      target_locale:
+        type: string
+      text:
+        type: string
+    required:
+      - source_locale
+      - target_locale
+      - text
+    type: object
+  translations.makeTranslationResponse:
+    properties:
+      translated_text:
+        type: string
+    type: object
+  translations.supportedLocaleResponse:
+    properties:
+      name:
+        type: string
+      tag:
+        type: string
+    type: object
+  utils.errorMessage:
+    properties:
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API for pocket slate
+  license:
+    name: MIT
+    url: https://github.com/kamaal111/pocket-slate-api/blob/main/LICENSE
+  title: Pocket slate API
+  version: "1.0"
+paths:
+  /health/ping:
+    get:
+      consumes:
+        - application/json
+      description: Pings the server
+      operationId: healthPing
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/health.pingResponse"
+      summary: Checks if server is up or down
+      tags:
+        - health
+  /translations:
+    post:
+      consumes:
+        - application/json
+      description:
+        Translates the given text in the payload from source locale to
+        target locale.
+      operationId: makeTranslation
+      parameters:
+        - description: The version of the app.
+          example: 4.2.0
+          in: header
+          name: App-Version
+          required: true
+          type: string
+        - description: The name of the app.
+          example: sup-app
+          in: header
+          name: App-Name
+          required: true
+          type: string
+        - description: API key registered to the app.
+          example: 1234lmao
+          in: header
+          name: Api-Key
+          required: true
+          type: string
+        - description: The text to translate.
+          in: body
+          name: payload
+          required: true
+          schema:
+            $ref: "#/definitions/translations.makeTranslationPayload"
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/translations.makeTranslationResponse"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/utils.errorMessage"
+        "403":
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/utils.errorMessage"
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: "#/definitions/utils.errorMessage"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/utils.errorMessage"
+      summary: Translate text.
+      tags:
+        - translations
+  /translations/supported-locales:
+    get:
+      consumes:
+        - application/json
+      description: Gets all the supported locales that can be used to translate.
+      operationId: getSupportedLocales
+      parameters:
+        - default: en
+          description: The target language to translate the locales to.
+          example: it
+          in: query
+          name: target
+          type: string
+        - description: The version of the app.
+          example: 4.2.0
+          in: header
+          name: App-Version
+          required: true
+          type: string
+        - description: The name of the app.
+          example: sup-app
+          in: header
+          name: App-Name
+          required: true
+          type: string
+        - description: API key registered to the app.
+          example: 1234lmao
+          in: header
+          name: Api-Key
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/translations.supportedLocaleResponse"
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/utils.errorMessage"
+        "403":
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/utils.errorMessage"
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: "#/definitions/utils.errorMessage"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/utils.errorMessage"
+      summary: Gets supported locales.
+      tags:
+        - translations
+swagger: "2.0"
