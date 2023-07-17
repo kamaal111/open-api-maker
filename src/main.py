@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 from pathlib import Path
 
 if TYPE_CHECKING:
-    from src.swagger_types import (
+    from swagger_types import (
         SwaggerDict,
         SwaggerPathMethod,
         SwaggerResponse,
