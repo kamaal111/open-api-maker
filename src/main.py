@@ -1,4 +1,6 @@
+import sys
 import yaml
+from getopt import getopt
 from typing import TYPE_CHECKING, Any
 from pathlib import Path
 
@@ -21,8 +23,8 @@ def get_original_array_schema_name(name: str):
     return name[:-1]
 
 
-def get_swagger_data() -> "SwaggerDict":
-    swagger_file = Path("test_files/swagger.yaml")
+def get_swagger_data(input_path: str) -> "SwaggerDict":
+    swagger_file = Path(input_path)
     swagger_file_text = swagger_file.read_text()
     swagger_dict = yaml.load(swagger_file_text, Loader=yaml.CLoader)
     return swagger_dict
@@ -212,24 +214,62 @@ def remove_types_from_path_schemas(data: dict):
 def map_swagger_data_for_xcode(swagger_dict: "SwaggerDict"):
     mapped_paths = map_swagger_paths_for_xcode(swagger_dict["paths"])
 
-    return remove_types_from_path_schemas(
-        {
-            "openapi": "3.0.3",
-            "info": swagger_dict["info"],
-            "paths": mapped_paths,
-            "components": {
-                "schemas": map_swagger_definitions_for_xcode(
-                    swagger_dict["definitions"], extract_array_responses(mapped_paths)
-                )
-            },
-        }
+    return yaml.dump(
+        remove_types_from_path_schemas(
+            {
+                "openapi": "3.0.3",
+                "info": swagger_dict["info"],
+                "paths": mapped_paths,
+                "components": {
+                    "schemas": map_swagger_definitions_for_xcode(
+                        swagger_dict["definitions"],
+                        extract_array_responses(mapped_paths),
+                    )
+                },
+            }
+        )
     )
 
 
-def write_api_spec(spec: str):
-    destination_file = Path("test_files/openapi.yaml")
+def write_api_spec(spec: str, output_path: str):
+    destination_file = Path(output_path)
     destination_file.write_text(spec)
 
 
+def parse_opts(shortopts: list[str] = [], longopts: list[str] = []) -> dict[str, str]:
+    argv = sys.argv[1:]
+    unique_shortopts = set(shortopts)
+    unique_longopts = set(longopts)
+    given_opts = unique_shortopts.union(unique_longopts)
+    opts, _ = getopt(
+        argv, ":".join(unique_shortopts) + ":", map(lambda x: f"{x}=", unique_longopts)
+    )
+    opts_dict = {}
+    for opt, arg in opts:
+        if arg == "":
+            continue
+
+        for given_opt in given_opts:
+            opt = opt.replace("-", "", 2)
+            if opt != given_opt:
+                continue
+
+            opts_dict[given_opt] = arg
+            break
+
+    return opts_dict
+
+
 if __name__ == "__main__":
-    write_api_spec(yaml.dump(map_swagger_data_for_xcode(get_swagger_data())))
+    opts = parse_opts(longopts=["input", "output"])
+    input_path = opts.get("input")
+    if not input_path:
+        raise Exception("No --input provided")
+
+    output_path = opts.get("output")
+    if not output_path:
+        raise Exception("No --output provided")
+
+    swagger_data = get_swagger_data(input_path)
+    mapped_swagger_data = map_swagger_data_for_xcode(swagger_data)
+    write_api_spec(mapped_swagger_data, output_path)
