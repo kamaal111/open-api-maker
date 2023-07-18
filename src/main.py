@@ -23,10 +23,8 @@ def get_original_array_schema_name(name: str):
     return name[:-1]
 
 
-def get_swagger_data(input_path: str) -> "SwaggerDict":
-    swagger_file = Path(input_path)
-    swagger_file_text = swagger_file.read_text()
-    swagger_dict = yaml.load(swagger_file_text, Loader=yaml.CLoader)
+def get_swagger_data(input_file_text: str) -> "SwaggerDict":
+    swagger_dict = yaml.load(input_file_text, Loader=yaml.CLoader)
     return swagger_dict
 
 
@@ -276,6 +274,7 @@ if __name__ == "__main__":
     if not output_path:
         raise Exception("No --output provided")
 
-    swagger_data = get_swagger_data(input_path)
+    swagger_file = Path(input_path)
+    swagger_data = get_swagger_data(swagger_file.read_text())
     mapped_swagger_data = map_swagger_data_for_xcode(swagger_data)
     write_api_spec(mapped_swagger_data, output_path)
