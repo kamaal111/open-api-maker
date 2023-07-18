@@ -103,23 +103,26 @@ def map_swagger_parameters_for_xcode(parameters: list["SwaggerParameter"] | None
     return mapped_parameters
 
 
-def map_swagger_path_request_body(parameters: list["SwaggerParameter"] | None):
+def map_swagger_path_request_body(
+    parameters: list["SwaggerParameter"] | None, consumes: list[str]
+):
     if not parameters:
         return None
 
     for parameter in parameters:
         if parameter["in"] == "body":
+            mapped_content = {}
+            for consume_type in consumes:
+                mapped_content[consume_type] = {
+                    "schema": {
+                        "$ref": f"#/components/schemas/{make_schema_name(parameter['schema']['$ref'])}"
+                    }
+                }
+
             return {
                 "description": parameter["description"],
                 "required": parameter["required"],
-                "content": {
-                    # Get this from produces
-                    "application/json": {
-                        "schema": {
-                            "$ref": f"#/components/schemas/{make_schema_name(parameter['schema']['$ref'])}"
-                        }
-                    }
-                },
+                "content": mapped_content,
             }
 
 
@@ -143,7 +146,7 @@ def map_swagger_paths_for_xcode(
                         value.get("parameters")
                     ),
                     "requestBody": map_swagger_path_request_body(
-                        value.get("parameters")
+                        parameters=value.get("parameters"), consumes=value["consumes"]
                     ),
                 }
             )
@@ -175,15 +178,16 @@ def extract_array_responses(mapped_paths: dict):
     for path in mapped_paths.values():
         for method in path.values():
             for response in method["responses"].values():
-                # Get content type from produces
-                response_schema = response["content"]["application/json"]["schema"]
-                if response_schema.get("type") == "array":
-                    response_schema_name = response_schema["$ref"]
-                    array_responses.append(
-                        get_original_array_schema_name(
-                            response_schema_name.split("/")[-1]
+                content = response["content"]
+                for content_type in content.keys():
+                    response_schema = content[content_type]["schema"]
+                    if response_schema.get("type") == "array":
+                        response_schema_name = response_schema["$ref"]
+                        array_responses.append(
+                            get_original_array_schema_name(
+                                response_schema_name.split("/")[-1]
+                            )
                         )
-                    )
 
     return array_responses
 
@@ -196,9 +200,9 @@ def remove_types_from_path_schemas(data: dict):
             mapped_method = method.copy()
             for response_key, response in method["responses"].items():
                 mapped_response = response.copy()
-                # Get content type from produces
-                if response["content"]["application/json"]["schema"].get("type"):
-                    del mapped_response["content"]["application/json"]["schema"]["type"]
+                for content_type in response["content"].keys():
+                    if response["content"][content_type]["schema"].get("type"):
+                        del mapped_response["content"][content_type]["schema"]["type"]
 
                 mapped_method["responses"][response_key] = mapped_response
 
@@ -222,8 +226,10 @@ def map_swagger_data_for_xcode(swagger_dict: "SwaggerDict"):
                 "paths": mapped_paths,
                 "components": {
                     "schemas": map_swagger_definitions_for_xcode(
-                        swagger_dict["definitions"],
-                        extract_array_responses(mapped_paths),
+                        definitions=swagger_dict["definitions"],
+                        array_responses=extract_array_responses(
+                            mapped_paths=mapped_paths
+                        ),
                     )
                 },
             }
