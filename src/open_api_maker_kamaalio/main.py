@@ -5,14 +5,14 @@ from typing import TYPE_CHECKING, Any
 from pathlib import Path
 
 if TYPE_CHECKING:
-    from swagger_types import (
+    from .swagger_types import (
         SwaggerDict,
         SwaggerPathMethod,
         SwaggerResponse,
         SwaggerDefinition,
         SwaggerParameter,
     )
-    from enums import SwaggerPathMethods
+    from .enums import SwaggerPathMethods
 
 
 def make_array_schema_name(name: str):
@@ -262,19 +262,3 @@ def parse_opts(shortopts: list[str] = [], longopts: list[str] = []) -> dict[str,
             break
 
     return opts_dict
-
-
-if __name__ == "__main__":
-    opts = parse_opts(longopts=["input", "output"])
-    input_path = opts.get("input")
-    if not input_path:
-        raise Exception("No --input provided")
-
-    output_path = opts.get("output")
-    if not output_path:
-        raise Exception("No --output provided")
-
-    swagger_file = Path(input_path)
-    swagger_data = get_swagger_data(swagger_file.read_text())
-    mapped_swagger_data = map_swagger_data_for_xcode(swagger_data)
-    write_api_spec(mapped_swagger_data, output_path)

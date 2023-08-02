@@ -1,7 +1,7 @@
 from typing import Any, Literal, TypedDict, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from enums import (
+    from .enums import (
         DefinitionTypes,
         DefinitionNames,
         SwaggerPathMethods,

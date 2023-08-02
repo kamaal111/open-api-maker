@@ -1,18 +1,27 @@
-[tool.poetry]
-name = "open-api-maker"
-version = "0.1.0"
-description = ""
-authors = ["Kamaal Farah <kamaal.f1@gmail.com>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-pyyaml = "^6.0"
-
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project.scripts]
+open-api-maker = "open_api_maker_kamaalio:cli.cli"
+
+
+[project]
+name = "open_api_maker_kamaalio"
+version = "0.0.2"
+authors = [{ name = "Kamaal Farah", email = "kamaal.f1@gmail.com" }]
+description = "A package that transforms Swagger to OpenAPI."
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = ["PyYAML >= 6.0.1"]
+
+
+[project.urls]
+"Homepage" = "https://github.com/kamaal111/open-api-maker"
+"Bug Tracker" = "https://github.com/kamaal111/open-api-maker/issues"

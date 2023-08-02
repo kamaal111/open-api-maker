@@ -1,4 +1,4 @@
-from ..main import (
+from src.open_api_maker_kamaalio.main import (
     get_original_array_schema_name,
     get_swagger_data,
     make_array_schema_name,
